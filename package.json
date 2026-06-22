@@ -2,11 +2,12 @@
   "name": "study-planner",
   "version": "1.0.0",
   "description": "Study and Day Task Planner web application.",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
-    "dev": "npx -y serve . -p 3000"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "dependencies": {
+    "express": "^4.19.2"
+  }
 }
