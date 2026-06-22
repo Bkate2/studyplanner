@@ -70,15 +70,76 @@ let doughnutChart = null;
 let barChart = null;
 
 // Initialization
-document.addEventListener('DOMContentLoaded', () => {
-    loadState();
+document.addEventListener('DOMContentLoaded', async () => {
     initEventListeners();
-    renderAll();
+    await loadState();
     lucide.createIcons();
 });
 
 // State Management
-function loadState() {
+async function loadState() {
+    try {
+        const response = await fetch('/api/data');
+        if (response.ok) {
+            const data = await response.json();
+            state.tasks = data.tasks || [];
+            state.dayLogs = data.dayLogs || [];
+            console.log('State loaded from backend server.');
+            
+            // Sync local storage cache
+            saveTasksToLocalStorage();
+            saveLogsToLocalStorage();
+        } else {
+            throw new Error('Non-ok response from server');
+        }
+    } catch (error) {
+        console.warn('Backend server unavailable. Falling back to local storage cache.', error);
+        loadStateFromLocalStorage();
+    }
+    renderAll();
+}
+
+async function syncWithServer() {
+    try {
+        const response = await fetch('/api/data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                tasks: state.tasks,
+                dayLogs: state.dayLogs
+            })
+        });
+        if (!response.ok) {
+            console.error('Server sync failed:', response.statusText);
+        } else {
+            console.log('Synced state successfully with server.');
+        }
+    } catch (error) {
+        console.error('Network error during sync:', error);
+    }
+}
+
+function saveTasksToStorage() {
+    saveTasksToLocalStorage();
+    syncWithServer();
+}
+
+function saveLogsToStorage() {
+    saveLogsToLocalStorage();
+    syncWithServer();
+}
+
+function saveTasksToLocalStorage() {
+    localStorage.setItem('sp_tasks', JSON.stringify(state.tasks));
+}
+
+function saveLogsToLocalStorage() {
+    localStorage.setItem('sp_daylogs', JSON.stringify(state.dayLogs));
+}
+
+function loadStateFromLocalStorage() {
     const savedTasks = localStorage.getItem('sp_tasks');
     const savedLogs = localStorage.getItem('sp_daylogs');
 
@@ -86,23 +147,15 @@ function loadState() {
         state.tasks = JSON.parse(savedTasks);
     } else {
         state.tasks = [...defaultTasks];
-        saveTasksToStorage();
+        saveTasksToLocalStorage();
     }
 
     if (savedLogs) {
         state.dayLogs = JSON.parse(savedLogs);
     } else {
         state.dayLogs = [...defaultDayLogs];
-        saveLogsToStorage();
+        saveLogsToLocalStorage();
     }
-}
-
-function saveTasksToStorage() {
-    localStorage.setItem('sp_tasks', JSON.stringify(state.tasks));
-}
-
-function saveLogsToStorage() {
-    localStorage.setItem('sp_daylogs', JSON.stringify(state.dayLogs));
 }
 
 // Subject css class generator
