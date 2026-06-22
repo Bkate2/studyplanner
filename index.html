@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyPlanner - Study & Day Task Planner</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+        <div class="header-logo" id="headerLogo">
+            <div class="logo-icon">
+                <i data-lucide="graduation-cap"></i>
+            </div>
+            <span class="logo-text">StudyPlanner</span>
+        </div>
+        <nav class="header-nav">
+            <button class="nav-tab active" data-tab="dashboard" id="tabDashboard">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </button>
+            <button class="nav-tab" data-tab="tasks" id="tabTasks">
+                <i data-lucide="check-square"></i> Tasks
+            </button>
+            <button class="nav-tab" data-tab="dayplanner" id="tabDayPlanner">
+                <i data-lucide="calendar"></i> Day Planner
+            </button>
+        </nav>
+        <div class="header-progress" id="headerProgressContainer">
+            <div class="progress-info">
+                <span class="progress-text" id="headerProgressText">0/0 done</span>
+                <span class="progress-pct" id="headerProgressPct">0%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-bar" id="headerProgressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-content">
+        <!-- ================= DASHBOARD TAB ================= -->
+        <section id="pane-dashboard" class="tab-pane active">
+            <!-- Today Widget -->
+            <div class="today-widget">
+                <div class="today-left">
+                    <span class="today-label" id="todayDateLabel">TODAY - MONDAY, 22 JUNE</span>
+                    <h1 class="today-focus" id="todayFocusText">Werken</h1>
+                </div>
+                <div class="today-right">
+                    <button class="btn btn-primary" id="btnEditToday">
+                        <i data-lucide="edit-3"></i> Edit today
+                    </button>
+                </div>
+            </div>
+
+            <!-- Metrics Cards Grid -->
+            <div class="metrics-grid">
+                <!-- Total Card -->
+                <div class="metric-card metric-total">
+                    <div class="metric-header">
+                        <span class="metric-title">TOTAL</span>
+                        <div class="metric-icon-bg total">
+                            <i data-lucide="clipboard-list"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="metricTotalVal">0</div>
+                    <div class="metric-footer">
+                        <div class="metric-progress-track">
+                            <div class="metric-progress-bar total" style="width: 100%;"></div>
+                        </div>
+                        <span class="metric-sub">100%</span>
+                    </div>
+                </div>
+                <!-- Done Card -->
+                <div class="metric-card metric-done">
+                    <div class="metric-header">
+                        <span class="metric-title">DONE</span>
+                        <div class="metric-icon-bg done">
+                            <i data-lucide="check-circle-2"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="metricDoneVal">0</div>
+                    <div class="metric-footer">
+                        <div class="metric-progress-track">
+                            <div class="metric-progress-bar done" id="metricDoneBar" style="width: 0%;"></div>
+                        </div>
+                        <span class="metric-sub" id="metricDonePct">0%</span>
+                    </div>
+                </div>
+                <!-- Active Card -->
+                <div class="metric-card metric-active">
+                    <div class="metric-header">
+                        <span class="metric-title">ACTIVE</span>
+                        <div class="metric-icon-bg active">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="metricActiveVal">0</div>
+                    <div class="metric-footer">
+                        <div class="metric-progress-track">
+                            <div class="metric-progress-bar active" id="metricActiveBar" style="width: 0%;"></div>
+                        </div>
+                        <span class="metric-sub" id="metricActivePct">0%</span>
+                    </div>
+                </div>
+                <!-- To Do Card -->
+                <div class="metric-card metric-todo">
+                    <div class="metric-header">
+                        <span class="metric-title">TO DO</span>
+                        <div class="metric-icon-bg todo">
+                            <i data-lucide="alert-circle"></i>
+                        </div>
+                    </div>
+                    <div class="metric-value" id="metricTodoVal">0</div>
+                    <div class="metric-footer">
+                        <div class="metric-progress-track">
+                            <div class="metric-progress-bar todo" id="metricTodoBar" style="width: 0%;"></div>
+                        </div>
+                        <span class="metric-sub" id="metricTodoPct">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Deadlines Section -->
+            <div class="dashboard-grid">
+                <!-- Status Breakdown Chart Card -->
+                <div class="dashboard-card status-breakdown-card">
+                    <h3 class="card-title">Status breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="chartStatusBreakdown"></canvas>
+                        <div class="donut-center-text">
+                            <span class="donut-pct" id="donutPercentText">0%</span>
+                            <span class="donut-lbl">completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Deadlines List Card -->
+                <div class="dashboard-card upcoming-deadlines-card">
+                    <h3 class="card-title">⏰ Upcoming deadlines</h3>
+                    <div class="deadlines-list" id="upcomingDeadlinesList">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Progress Per Subject Card -->
+            <div class="dashboard-card progress-subject-card">
+                <h3 class="card-title">Progress per subject</h3>
+                <div class="bar-chart-container">
+                    <canvas id="chartProgressSubject"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TASKS TAB ================= -->
+        <section id="pane-tasks" class="tab-pane">
+            <div class="tasks-header">
+                <div class="tasks-filters">
+                    <div class="filter-group">
+                        <label for="filterSubject"><i data-lucide="tag"></i> Subject</label>
+                        <select id="filterSubject">
+                            <option value="all">All Subjects</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterStatus"><i data-lucide="check-square"></i> Status</label>
+                        <select id="filterStatus">
+                            <option value="all">All Statuses</option>
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="filter-group search-group">
+                        <label for="searchTask"><i data-lucide="search"></i> Search</label>
+                        <input type="text" id="searchTask" placeholder="Search tasks or notes...">
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="btnAddTask">
+                    <i data-lucide="plus"></i> Add Task
+                </button>
+            </div>
+
+            <!-- Tasks Table Card -->
+            <div class="tasks-table-card">
+                <div class="table-responsive">
+                    <table class="tasks-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="subject">Subject <i data-lucide="chevrons-up-down"></i></th>
+                                <th class="sortable" data-sort="task">Task <i data-lucide="chevrons-up-down"></i></th>
+                                <th class="sortable" data-sort="status">Status <i data-lucide="chevrons-up-down"></i></th>
+                                <th class="sortable" data-sort="deadline">Deadline <i data-lucide="chevrons-up-down"></i></th>
+                                <th>Notes</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tasksTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-empty-state" id="tableEmptyState" style="display: none;">
+                    <i data-lucide="folder-open"></i>
+                    <p>No tasks found matching current filters.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= DAY PLANNER TAB ================= -->
+        <section id="pane-dayplanner" class="tab-pane">
+            <div class="dayplanner-header">
+                <h2>Timeline Schedule</h2>
+                <span class="timeline-subtitle">Daily focus and automatic milestone tracker</span>
+            </div>
+
+            <div class="timeline-container" id="timelineDaysContainer">
+                <!-- Day cards populated dynamically via JS -->
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= EDIT TODAY FOCUS MODAL ================= -->
+    <div class="modal-overlay" id="modalEditToday">
+        <div class="modal-box small-modal">
+            <div class="modal-header">
+                <h3>Edit Today's Focus</h3>
+                <button class="close-btn" data-close="modalEditToday"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditToday">
+                    <div class="form-group">
+                        <label for="inputTodayFocus">Focus of the Day</label>
+                        <input type="text" id="inputTodayFocus" placeholder="e.g. studying, exams, working...">
+                    </div>
+                    <div class="form-group">
+                        <label for="inputTodayExtra">Extra Focus / Detail</label>
+                        <input type="text" id="inputTodayExtra" placeholder="e.g. specific topics...">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-close="modalEditToday">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TASK MODAL (ADD / EDIT) ================= -->
+    <div class="modal-overlay" id="modalTask">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="taskModalTitle">Add New Task</h3>
+                <button class="close-btn" data-close="modalTask"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="formTask">
+                    <input type="hidden" id="taskInputId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="taskInputSubject">Subject / Category</label>
+                            <input type="text" id="taskInputSubject" required list="subjectSuggestions" placeholder="e.g. PAMT, Numerieke Wiskunde">
+                            <datalist id="subjectSuggestions">
+                                <option value="PAMT">
+                                <option value="Numerieke Wiskunde">
+                                <option value="Waterbouwkunde">
+                                <option value="Hydrologie">
+                                <option value="Work">
+                                <option value="Personal">
+                                <option value="Exercise">
+                            </datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskInputStatus">Status</label>
+                            <select id="taskInputStatus" required>
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskInputName">Task Description</label>
+                        <input type="text" id="taskInputName" required placeholder="e.g. Week 8: Cybernetics, Essay draft">
+                    </div>
+                    <div class="form-group">
+                        <label for="taskInputDeadline">Deadline Date</label>
+                        <input type="date" id="taskInputDeadline" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="taskInputNotes">Notes / Resources (links auto-detected)</label>
+                        <textarea id="taskInputNotes" rows="3" placeholder="Add links, YouTube guides, or general comments here..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-close="modalTask">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="btnTaskSubmit">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
